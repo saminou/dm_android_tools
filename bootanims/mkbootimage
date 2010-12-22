@@ -1,0 +1,58 @@
+#!/bin/bash
+
+SOURCE=""
+GEOMETRY=""
+
+while getopts "s:g:f:" opt ; do
+    case "$opt" in
+        "s")
+            SOURCE=$OPTARG
+            ;;
+        "g")
+            GEOMETRY=$OPTARG
+            ;;
+        "f")
+            FPS=$OPTARG
+            ;;
+        *)
+            echo "Usage: mkbootimage -s SOURCE.GIF -g WIDTHxHEIGHT -f FPS"
+            exit 1
+            ;;
+    esac
+done
+
+WIDTH=${GEOMETRY%x*}
+HEIGHT=${GEOMETRY#*x}
+TMP=$(mktemp -d)
+
+echo $WIDTH $HEIGHT $FPS > $TMP/desc.txt
+echo p 0 0 part0 >> $TMP/desc.txt
+
+mkdir $TMP/part0
+#convert $SOURCE -alpha deactivate -coalesce $TMP/deconstructed-%d.gif
+convert $SOURCE -coalesce $TMP/deconstructed-%d.gif
+
+for i in $TMP/deconstructed-*.gif ; do
+    convert -extent ${WIDTH}x${HEIGHT} \
+        -gravity center \
+        -background black \
+        $i \
+        $(echo $i |sed 's/gif/png/g' |sed 's/decon/part0\/decon/g')
+done
+
+rm $TMP/deconstructed-*.gif
+NUM=$(ls -la $TMP/part0/*.png |wc -l)
+NUM=$(( $NUM - 1 ))
+
+for i in $(seq 0 $NUM) ; do
+    mv $TMP/part0/deconstructed-$i.png $TMP/part0/$(printf "%04d" $i).png 
+done
+
+OLDPWD=$(pwd)
+cd $TMP
+zip -0r bootanimation.zip desc.txt part0
+mv bootanimation.zip $OLDPWD
+rm -rf $TMP
+cd $OLDPWD
+
+#adb push bootanimation.zip /data/local/
