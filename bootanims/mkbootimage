@@ -4,8 +4,9 @@
 
 SOURCE=""
 GEOMETRY=""
+BGCOLOR=""
 
-while getopts "s:g:f:" opt ; do
+while getopts "s:g:f:c:" opt ; do
     case "$opt" in
         "s")
             SOURCE=$OPTARG
@@ -16,8 +17,11 @@ while getopts "s:g:f:" opt ; do
         "f")
             FPS=$OPTARG
             ;;
-        *)
-            echo "Usage: mkbootimage -s SOURCE.GIF -g WIDTHxHEIGHT -f FPS"
+				"c")
+						BGCOLOR=$OPTARG
+						;;
+				*)
+            echo "Usage: mkbootimage -s SOURCE.GIF -g WIDTHxHEIGHT -f FPS -c BACKGROUND-COLOR"
             exit 1
             ;;
     esac
@@ -37,7 +41,7 @@ convert $SOURCE -coalesce $TMP/deconstructed-%d.gif
 for i in $TMP/deconstructed-*.gif ; do
     convert -extent ${WIDTH}x${HEIGHT} \
         -gravity center \
-        -background black \
+        -background $BGCOLOR \
         $i \
         $(echo $i |sed 's/gif/png/g' |sed 's/decon/part0\/decon/g')
 done
