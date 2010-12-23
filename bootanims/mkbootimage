@@ -17,10 +17,10 @@ while getopts "s:g:f:c:" opt ; do
         "f")
             FPS=$OPTARG
             ;;
-				"c")
-						BGCOLOR=$OPTARG
-						;;
-				*)
+        "c")
+            BGCOLOR=$OPTARG
+            ;;
+          *)
             echo "Usage: mkbootimage -s SOURCE.GIF -g WIDTHxHEIGHT -f FPS -c BACKGROUND-COLOR"
             exit 1
             ;;
